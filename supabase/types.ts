@@ -46,10 +46,13 @@ export type Database = {
           id: string
           is_archived: boolean
           is_default: boolean
+          model_file_size: number | null
+          model_uploaded_at: string | null
           model_url: string | null
           name: string
           project_id: string
           updated_at: string | null
+          upload_status: Database["public"]["Enums"]["upload_status"] | null
         }
         Insert: {
           created_at?: string
@@ -57,10 +60,13 @@ export type Database = {
           id?: string
           is_archived?: boolean
           is_default?: boolean
+          model_file_size?: number | null
+          model_uploaded_at?: string | null
           model_url?: string | null
           name: string
           project_id: string
           updated_at?: string | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
         }
         Update: {
           created_at?: string
@@ -68,10 +74,13 @@ export type Database = {
           id?: string
           is_archived?: boolean
           is_default?: boolean
+          model_file_size?: number | null
+          model_uploaded_at?: string | null
           model_url?: string | null
           name?: string
           project_id?: string
           updated_at?: string | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
         }
         Relationships: [
           {
@@ -98,10 +107,13 @@ export type Database = {
           models_context: string[] | null
           models_heatmap: string | null
           name: string
+          required_files: Json | null
           spatial_lens_url: string | null
           spatial_simulation_url: string | null
           status: Database["public"]["Enums"]["project_status"]
           updated_at: string | null
+          upload_status: Database["public"]["Enums"]["upload_status"] | null
+          uploaded_files: Json | null
         }
         Insert: {
           created_at?: string
@@ -110,10 +122,13 @@ export type Database = {
           models_context?: string[] | null
           models_heatmap?: string | null
           name: string
+          required_files?: Json | null
           spatial_lens_url?: string | null
           spatial_simulation_url?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
+          uploaded_files?: Json | null
         }
         Update: {
           created_at?: string
@@ -122,10 +137,13 @@ export type Database = {
           models_context?: string[] | null
           models_heatmap?: string | null
           name?: string
+          required_files?: Json | null
           spatial_lens_url?: string | null
           spatial_simulation_url?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
+          uploaded_files?: Json | null
         }
         Relationships: []
       }
@@ -138,10 +156,17 @@ export type Database = {
           length_ms: number | null
           option_id: string
           project_id: string
+          raw_file_size: number | null
+          raw_uploaded_at: string | null
           raw_url: string | null
-          record_url: string
+          record_file_size: number | null
+          record_uploaded_at: string | null
+          record_url: string | null
           scenario_id: string
           updated_at: string | null
+          upload_error: string | null
+          upload_retry_count: number | null
+          upload_status: Database["public"]["Enums"]["upload_status"] | null
         }
         Insert: {
           created_at?: string
@@ -151,10 +176,17 @@ export type Database = {
           length_ms?: number | null
           option_id: string
           project_id: string
+          raw_file_size?: number | null
+          raw_uploaded_at?: string | null
           raw_url?: string | null
-          record_url: string
+          record_file_size?: number | null
+          record_uploaded_at?: string | null
+          record_url?: string | null
           scenario_id: string
           updated_at?: string | null
+          upload_error?: string | null
+          upload_retry_count?: number | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
         }
         Update: {
           created_at?: string
@@ -164,10 +196,17 @@ export type Database = {
           length_ms?: number | null
           option_id?: string
           project_id?: string
+          raw_file_size?: number | null
+          raw_uploaded_at?: string | null
           raw_url?: string | null
-          record_url?: string
+          record_file_size?: number | null
+          record_uploaded_at?: string | null
+          record_url?: string | null
           scenario_id?: string
           updated_at?: string | null
+          upload_error?: string | null
+          upload_retry_count?: number | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
         }
         Relationships: [
           {
@@ -247,6 +286,57 @@ export type Database = {
           },
         ]
       }
+      upload_files: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          is_required: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          updated_at: string | null
+          upload_status: Database["public"]["Enums"]["upload_status"] | null
+          uploaded_at: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          is_required?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          updated_at?: string | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
+          uploaded_at?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          is_required?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          updated_at?: string | null
+          upload_status?: Database["public"]["Enums"]["upload_status"] | null
+          uploaded_at?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       projects_full: {
@@ -293,6 +383,20 @@ export type Database = {
       }
     }
     Functions: {
+      finalize_option: { Args: { option_id: string }; Returns: Json }
+      finalize_record: { Args: { record_id: string }; Returns: Json }
+      find_abandoned_uploads: {
+        Args: { threshold_hours?: number }
+        Returns: {
+          completed_files: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          hours_old: number
+          total_files: number
+          upload_status: Database["public"]["Enums"]["upload_status"]
+        }[]
+      }
       get_project_full: { Args: { p_project_id: string }; Returns: Json }
       get_project_storage_path: {
         Args: {
@@ -307,6 +411,7 @@ export type Database = {
     }
     Enums: {
       project_status: "development" | "released" | "archived"
+      upload_status: "draft" | "uploading" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,6 +543,7 @@ export const Constants = {
   public: {
     Enums: {
       project_status: ["development", "released", "archived"],
+      upload_status: ["draft", "uploading", "completed", "failed"],
     },
   },
 } as const
