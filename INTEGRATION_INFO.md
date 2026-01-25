@@ -30,13 +30,17 @@ curl -o src/types/database.ts https://raw.githubusercontent.com/archichudinow/sp
 
 ## 🌐 Public Access
 
-✅ **Read all data** (no authentication required)
-- Projects, options, scenarios, records
-- Storage files
+✅ **Anonymous users can:**
+- Read all projects, options, scenarios, records
+- Read all storage files
+- Submit recordings via Edge Functions:
+  - `save-recording` - Server generates GLB
+  - `save-recording-with-glb` - Client sends GLB
 
-✅ **Submit recordings** via Edge Functions
-- `save-recording` - Server generates GLB
-- `save-recording-with-glb` - Client sends GLB
+✅ **Authenticated admins can:**
+- Full CRUD on all tables (including direct record insertion)
+- Full CRUD on storage files
+- Manage project structure
 
 ## 📁 Key Resources
 

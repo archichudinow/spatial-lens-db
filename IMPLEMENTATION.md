@@ -64,7 +64,7 @@ This document verifies that all requirements have been implemented correctly.
 ### 10. RLS Policies - Records Table
 - ✅ `anon` can SELECT (read)
 - ✅ `service_role` can INSERT (via Edge Functions)
-- ✅ `authenticated` can SELECT, UPDATE, DELETE
+- ✅ `authenticated` can SELECT, INSERT, UPDATE, DELETE (full CRUD)
 - ❌ `anon` cannot directly INSERT, UPDATE, DELETE
 
 ### 11. Storage Policies
@@ -213,8 +213,9 @@ Before deploying to production:
 - ❌ Modify project structure
 
 ### What Authenticated Admins CAN do:
-- ✅ Full CRUD on all tables
+- ✅ Full CRUD on all tables (including direct record insertion)
 - ✅ Full CRUD on storage files
 - ✅ Delete projects (with automatic cascade)
+- ✅ Create records without Edge Functions
 - ❌ Delete base options (while project exists)
 - ❌ Delete base scenarios (while option exists)

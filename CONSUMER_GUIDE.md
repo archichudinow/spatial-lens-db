@@ -79,6 +79,17 @@ const { data: newProject, error } = await supabase
   .select()
   .single()
 
+// Admins can insert records directly (authenticated users only)
+const { data: newRecord, error: recordError } = await supabase
+  .from('records')
+  .insert({
+    scenario_id: scenarioId,
+    device_type: 'vr',
+    glb_model_url: 'records/glb/option/xxx/scenario/yyy/zzz.glb'
+  })
+  .select()
+  .single()
+
 // Type-safe filtering
 const { data: records } = await supabase
   .from('records')
