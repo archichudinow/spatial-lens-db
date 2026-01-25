@@ -153,30 +153,43 @@ supabase stop
 
 ## 📦 Consuming Database Types
 
+**👉 See [CONSUMER_GUIDE.md](CONSUMER_GUIDE.md) for complete integration guide**
+
 Other applications should consume the database schema via the generated TypeScript types.
 
-### For TypeScript/JavaScript Applications
+### Quick Start for Consumer Apps
 
-1. **Copy types to your project** (or use as a git submodule)
+1. **Download types file**
    ```bash
-   cp path/to/spatial-lens-db/supabase/types.ts src/types/database.ts
+   curl -o src/types/database.ts https://raw.githubusercontent.com/archichudinow/spatial-lens-db/main/supabase/types.ts
    ```
 
-2. **Use with Supabase client**
+2. **Install Supabase client**
+   ```bash
+   npm install @supabase/supabase-js
+   ```
+
+3. **Create typed client**
    ```typescript
    import { createClient } from '@supabase/supabase-js'
    import { Database } from './types/database'
 
    const supabase = createClient<Database>(
-     process.env.SUPABASE_URL!,
-     process.env.SUPABASE_ANON_KEY!
+     'https://piibdadcmkrmvbiapglz.supabase.co',
+     'YOUR_ANON_KEY'
    )
 
-   // Now you get full type safety
+   // Full type safety - no auth needed for reading!
    const { data } = await supabase
      .from('projects')
      .select('*')
    ```
+
+### Database Access (Public)
+
+✅ **Anonymous users can read** all data (projects, options, scenarios, records, storage)  
+✅ **Submit recordings** via Edge Functions (secure, server-side validation)  
+❌ **Cannot directly modify** data (requires authentication)
 
 ### Keeping Types in Sync
 
