@@ -52,6 +52,8 @@ export type Database = {
           name: string
           project_id: string
           updated_at: string | null
+          upload_error: string | null
+          upload_retry_count: number | null
           upload_status: Database["public"]["Enums"]["upload_status"] | null
         }
         Insert: {
@@ -66,6 +68,8 @@ export type Database = {
           name: string
           project_id: string
           updated_at?: string | null
+          upload_error?: string | null
+          upload_retry_count?: number | null
           upload_status?: Database["public"]["Enums"]["upload_status"] | null
         }
         Update: {
@@ -80,6 +84,8 @@ export type Database = {
           name?: string
           project_id?: string
           updated_at?: string | null
+          upload_error?: string | null
+          upload_retry_count?: number | null
           upload_status?: Database["public"]["Enums"]["upload_status"] | null
         }
         Relationships: [
@@ -112,6 +118,8 @@ export type Database = {
           spatial_simulation_url: string | null
           status: Database["public"]["Enums"]["project_status"]
           updated_at: string | null
+          upload_error: string | null
+          upload_retry_count: number | null
           upload_status: Database["public"]["Enums"]["upload_status"] | null
           uploaded_files: Json | null
         }
@@ -127,6 +135,8 @@ export type Database = {
           spatial_simulation_url?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string | null
+          upload_error?: string | null
+          upload_retry_count?: number | null
           upload_status?: Database["public"]["Enums"]["upload_status"] | null
           uploaded_files?: Json | null
         }
@@ -142,6 +152,8 @@ export type Database = {
           spatial_simulation_url?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string | null
+          upload_error?: string | null
+          upload_retry_count?: number | null
           upload_status?: Database["public"]["Enums"]["upload_status"] | null
           uploaded_files?: Json | null
         }
