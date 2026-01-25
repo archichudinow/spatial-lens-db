@@ -67,14 +67,11 @@ serve(async (req) => {
       )
     }
 
-    // Verify entities exist
-    const { data: project, error: projectError } = await supabaseClient
-      .from('projects')
-      .select('id')
-      .eq('id', projectId)
-      .single()
+    // Verify entities exist and get project storage path
+    const { data: projectPath, error: projectPathError } = await supabaseClient
+      .rpc('get_project_folder_name', { project_id: projectId })
 
-    if (projectError || !project) {
+    if (projectPathError || !projectPath) {
       return new Response(
         JSON.stringify({ error: 'Project not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -107,14 +104,26 @@ serve(async (req) => {
       )
     }
 
-    // Generate file names
-    const sanitizedOption = (optionName || option.name).replace(/[^a-zA-Z0-9]/g, '_')
-    const sanitizedScenario = (scenarioName || scenario.name).replace(/[^a-zA-Z0-9]/g, '_')
-    const uniqueId = Date.now()
-    const baseFileName = `${sanitizedOption}_${sanitizedScenario}_${uniqueId}`
+    // Generate hierarchical storage paths using database functions
+    const timestamp = Date.now()
+    
+    // Get GLB path: {project}/records/records_glb/{option}/{scenario}/processed_recording_{ts}.glb
+    const { data: glbPath, error: glbPathError } = await supabaseClient
+      .rpc('generate_record_glb_path', {
+        p_project_id: projectId,
+        p_option_id: optionId,
+        p_scenario_id: scenarioId,
+        p_timestamp: timestamp
+      })
+
+    if (glbPathError || !glbPath) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate storage path', details: glbPathError?.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Upload GLB to storage
-    const glbPath = `${projectId}/records/${baseFileName}.glb`
     const glbArrayBuffer = await glbFile.arrayBuffer()
     const { data: glbUpload, error: glbError } = await supabaseClient.storage
       .from('projects')
@@ -139,20 +148,31 @@ serve(async (req) => {
     // Upload CSV if provided
     let rawUrl = null
     if (csvFile) {
-      const csvPath = `${projectId}/records/${baseFileName}.csv`
-      const csvArrayBuffer = await csvFile.arrayBuffer()
-      const { data: csvUpload, error: csvError } = await supabaseClient.storage
-        .from('projects')
-        .upload(csvPath, csvArrayBuffer, {
-          contentType: 'text/csv',
-          upsert: false
+      // Get CSV path: {project}/records/records_csv/{option}/{scenario}/raw_recording_{ts}.json
+      const { data: csvPath, error: csvPathError } = await supabaseClient
+        .rpc('generate_record_raw_path', {
+          p_project_id: projectId,
+          p_option_id: optionId,
+          p_scenario_id: scenarioId,
+          p_timestamp: timestamp,
+          p_extension: csvFile.name.endsWith('.json') ? 'json' : 'csv'
         })
 
-      if (!csvError) {
-        const { data: csvUrlData } = supabaseClient.storage
+      if (!csvPathError && csvPath) {
+        const csvArrayBuffer = await csvFile.arrayBuffer()
+        const { data: csvUpload, error: csvError } = await supabaseClient.storage
           .from('projects')
-          .getPublicUrl(csvPath)
-        rawUrl = csvUrlData.publicUrl
+          .upload(csvPath, csvArrayBuffer, {
+            contentType: csvFile.name.endsWith('.json') ? 'application/json' : 'text/csv',
+            upsert: false
+          })
+
+        if (!csvError) {
+          const { data: csvUrlData } = supabaseClient.storage
+            .from('projects')
+            .getPublicUrl(csvPath)
+          rawUrl = csvUrlData.publicUrl
+        }
       }
     }
 
@@ -174,9 +194,20 @@ serve(async (req) => {
 
     if (recordError) {
       console.error('Database error:', recordError)
-      // Clean up uploaded files
-      const filesToRemove = [glbPath]
-      if (rawUrl) filesToRemove.push(`${projectId}/records/${baseFileName}.csv`)
+      // Clean up uploaded files using hierarchical paths
+      const filesToRemove = [glbPath as string]
+      if (rawUrl) {
+        // Extract path from URL or regenerate it
+        const { data: csvPath } = await supabaseClient
+          .rpc('generate_record_raw_path', {
+            p_project_id: projectId,
+            p_option_id: optionId,
+            p_scenario_id: scenarioId,
+            p_timestamp: timestamp,
+            p_extension: 'csv'
+          })
+        if (csvPath) filesToRemove.push(csvPath)
+      }
       await supabaseClient.storage.from('projects').remove(filesToRemove)
       
       return new Response(

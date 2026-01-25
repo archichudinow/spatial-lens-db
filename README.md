@@ -21,6 +21,7 @@ This repository **owns and manages** all database-related concerns for the Spati
 - [Getting Started](#getting-started)
 - [Local Development](#local-development)
 - [Making Database Changes](#making-database-changes)
+- [Storage Structure](#storage-structure)
 - [Consuming Database Types](#consuming-database-types)
 - [Edge Functions](#edge-functions)
 - [Security & Permissions](#security--permissions)
@@ -147,6 +148,55 @@ supabase stop
 - ✅ Include both schema and RLS policies
 - ✅ Add comments explaining complex logic
 - ✅ Test with `supabase db reset` before committing
+
+## 📦 Storage Structure
+
+All project files are stored in a unified `projects` bucket with a hierarchical structure:
+
+```
+projects/
+  {project_name}_{project_id}/
+    ├── options/{option_id}/model_{timestamp}.glb
+    ├── records/
+    │   ├── records_glb/{option_id}/{scenario_id}/processed_recording_{timestamp}.glb
+    │   └── records_csv/{option_id}/{scenario_id}/raw_recording_{timestamp}.json
+    └── others/
+        ├── context_{timestamp}.glb
+        └── heatmap_{timestamp}.glb
+```
+
+### Key Features
+
+- **Hierarchical Organization**: All project files grouped together
+- **Human-Readable Names**: Folder names include project names
+- **Database-Driven Paths**: Path generation via database functions
+- **Service-Role Security**: All uploads through Edge Functions
+
+### Documentation
+
+- [STORAGE_UPDATE.md](STORAGE_UPDATE.md) - Design specification
+- [STORAGE_IMPLEMENTATION.md](STORAGE_IMPLEMENTATION.md) - Implementation guide
+- [STORAGE_IMPLEMENTATION_SUMMARY.md](STORAGE_IMPLEMENTATION_SUMMARY.md) - Quick reference
+
+### Usage
+
+**Server-side (Edge Functions):**
+```typescript
+const { data: path } = await supabase.rpc('generate_record_glb_path', {
+  p_project_id: projectId,
+  p_option_id: optionId,
+  p_scenario_id: scenarioId,
+  p_timestamp: Date.now()
+})
+```
+
+**Client-side (TypeScript utilities):**
+```typescript
+import { generateStoragePath } from './supabase/storage-utils'
+
+const { bucket, path } = generateStoragePath('record', 'processed_recording', context)
+// Note: Actual uploads must go through Edge Functions
+```
 - ✅ Never edit existing migrations (create a new one to fix)
 - ❌ No breaking changes without coordination
 - ❌ No manual database edits via dashboard

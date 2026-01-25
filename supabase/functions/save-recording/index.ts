@@ -75,14 +75,11 @@ serve(async (req) => {
       )
     }
 
-    // Verify that project, option, and scenario exist
-    const { data: project, error: projectError } = await supabaseClient
-      .from('projects')
-      .select('id')
-      .eq('id', projectId)
-      .single()
+    // Verify that project, option, and scenario exist and get project storage path
+    const { data: projectPath, error: projectPathError } = await supabaseClient
+      .rpc('get_project_folder_name', { project_id: projectId })
 
-    if (projectError || !project) {
+    if (projectPathError || !projectPath) {
       return new Response(
         JSON.stringify({ error: 'Project not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -118,12 +115,6 @@ serve(async (req) => {
     // Calculate duration
     const durationMs = Math.round((frames[frames.length - 1]?.time || 0) * 1000)
 
-    // Generate file names
-    const sanitizedOption = (optionName || option.name).replace(/[^a-zA-Z0-9]/g, '_')
-    const sanitizedScenario = (scenarioName || scenario.name).replace(/[^a-zA-Z0-9]/g, '_')
-    const uniqueId = Date.now()
-    const baseFileName = `${sanitizedOption}_${sanitizedScenario}_${uniqueId}`
-
     // Generate CSV content
     const csvContent = generateCSV(frames)
     const csvBlob = new Blob([csvContent], { type: 'text/csv' })
@@ -137,8 +128,26 @@ serve(async (req) => {
     })
     const glbBlob = new Blob([glbContent], { type: 'application/octet-stream' })
 
+    // Generate hierarchical storage paths using database functions
+    const timestamp = Date.now()
+    
+    // Get GLB path: {project}/records/records_glb/{option}/{scenario}/processed_recording_{ts}.glb
+    const { data: glbPath, error: glbPathError } = await supabaseClient
+      .rpc('generate_record_glb_path', {
+        p_project_id: projectId,
+        p_option_id: optionId,
+        p_scenario_id: scenarioId,
+        p_timestamp: timestamp
+      })
+
+    if (glbPathError || !glbPath) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate storage path', details: glbPathError?.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Upload GLB to storage
-    const glbPath = `${projectId}/records/${baseFileName}.glb`
     const { data: glbUpload, error: glbError } = await supabaseClient.storage
       .from('projects')
       .upload(glbPath, glbBlob, {
@@ -159,21 +168,31 @@ serve(async (req) => {
       .from('projects')
       .getPublicUrl(glbPath)
 
-    // Upload CSV to storage
-    const csvPath = `${projectId}/records/${baseFileName}.csv`
-    const { data: csvUpload, error: csvError } = await supabaseClient.storage
-      .from('projects')
-      .upload(csvPath, csvBlob, {
-        contentType: 'text/csv',
-        upsert: false
+    // Get CSV path: {project}/records/records_csv/{option}/{scenario}/raw_recording_{ts}.csv
+    const { data: csvPath, error: csvPathError } = await supabaseClient
+      .rpc('generate_record_raw_path', {
+        p_project_id: projectId,
+        p_option_id: optionId,
+        p_scenario_id: scenarioId,
+        p_timestamp: timestamp,
+        p_extension: 'csv'
       })
 
     let rawUrl = null
-    if (!csvError) {
-      const { data: csvUrlData } = supabaseClient.storage
+    if (!csvPathError && csvPath) {
+      const { data: csvUpload, error: csvError } = await supabaseClient.storage
         .from('projects')
-        .getPublicUrl(csvPath)
-      rawUrl = csvUrlData.publicUrl
+        .upload(csvPath, csvBlob, {
+          contentType: 'text/csv',
+          upsert: false
+        })
+
+      if (!csvError) {
+        const { data: csvUrlData } = supabaseClient.storage
+          .from('projects')
+          .getPublicUrl(csvPath)
+        rawUrl = csvUrlData.publicUrl
+      }
     }
 
     // Create database record
@@ -195,7 +214,9 @@ serve(async (req) => {
     if (recordError) {
       console.error('Database error:', recordError)
       // Try to clean up uploaded files
-      await supabaseClient.storage.from('projects').remove([glbPath, csvPath])
+      const filesToRemove = [glbPath as string]
+      if (csvPath) filesToRemove.push(csvPath)
+      await supabaseClient.storage.from('projects').remove(filesToRemove)
       
       return new Response(
         JSON.stringify({ error: 'Failed to create database record', details: recordError.message }),
