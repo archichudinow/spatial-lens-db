@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -294,6 +289,16 @@ export type Database = {
     }
     Functions: {
       get_project_full: { Args: { p_project_id: string }; Returns: Json }
+      get_project_storage_path: {
+        Args: {
+          p_file_type: string
+          p_option_id?: string
+          p_project_id: string
+          p_record_id?: string
+          p_scenario_id?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       project_status: "development" | "released" | "archived"
@@ -431,3 +436,4 @@ export const Constants = {
     },
   },
 } as const
+
