@@ -349,6 +349,66 @@ export type Database = {
         }
         Relationships: []
       }
+      upload_sessions: {
+        Row: {
+          chunk_size: number | null
+          completed_at: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          expires_at: string
+          file_name: string
+          file_type: string
+          final_path: string
+          id: string
+          mime_type: string | null
+          session_status: string | null
+          total_chunks: number
+          total_size: number
+          updated_at: string | null
+          uploaded_chunks: number[] | null
+        }
+        Insert: {
+          chunk_size?: number | null
+          completed_at?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          expires_at?: string
+          file_name: string
+          file_type: string
+          final_path: string
+          id?: string
+          mime_type?: string | null
+          session_status?: string | null
+          total_chunks: number
+          total_size: number
+          updated_at?: string | null
+          uploaded_chunks?: number[] | null
+        }
+        Update: {
+          chunk_size?: number | null
+          completed_at?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          expires_at?: string
+          file_name?: string
+          file_type?: string
+          final_path?: string
+          id?: string
+          mime_type?: string | null
+          session_status?: string | null
+          total_chunks?: number
+          total_size?: number
+          updated_at?: string | null
+          uploaded_chunks?: number[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       projects_full: {
@@ -395,6 +455,7 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_upload_sessions: { Args: never; Returns: Json }
       finalize_option: { Args: { option_id: string }; Returns: Json }
       finalize_record: { Args: { record_id: string }; Returns: Json }
       find_abandoned_uploads: {
@@ -419,6 +480,14 @@ export type Database = {
           p_scenario_id?: string
         }
         Returns: string
+      }
+      get_upload_session_status: {
+        Args: { p_session_id: string }
+        Returns: Json
+      }
+      mark_chunk_completed: {
+        Args: { p_chunk_index: number; p_session_id: string }
+        Returns: Json
       }
     }
     Enums: {
