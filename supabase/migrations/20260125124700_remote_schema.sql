@@ -77,11 +77,8 @@ BEGIN
     is_archived
   ) VALUES (
     NEW.id,
-    CASE 
-      WHEN NEW.is_default THEN 'Base Scenario'
-      ELSE 'Exploration Scenario'
-    END,
-    'A free exploration scenario created with the option',
+    'Exploration Scenario',
+    'A free exploration scenario created with the option.',
     'You are free to explore',
     '{"x": 0, "y": 0, "z": 0}'::jsonb,
     '{"x": 0, "y": 0, "z": 0}'::jsonb,
