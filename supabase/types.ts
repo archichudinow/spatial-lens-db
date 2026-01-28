@@ -489,6 +489,14 @@ export type Database = {
         Args: { p_chunk_index: number; p_session_id: string }
         Returns: Json
       }
+      reset_option_for_reupload: {
+        Args: { p_option_id: string }
+        Returns: Json
+      }
+      reset_record_for_reupload: {
+        Args: { p_record_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       project_status: "development" | "released" | "archived"

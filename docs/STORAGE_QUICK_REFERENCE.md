@@ -123,6 +123,29 @@ graph LR
 
 ## Common Tasks
 
+### Reset Completed Upload for Re-upload
+```typescript
+// Reset option back to draft status (allows re-uploading)
+const { data, error } = await supabase.rpc('reset_option_for_reupload', {
+  p_option_id: optionId
+})
+
+// Returns:
+// {
+//   success: true,
+//   option_id: "...",
+//   previous_status: "completed",
+//   new_status: "draft",
+//   deleted_files_count: 3,
+//   message: "Option reset successfully for re-upload"
+// }
+
+// Reset record back to draft status
+const { data, error } = await supabase.rpc('reset_record_for_reupload', {
+  p_record_id: recordId
+})
+```
+
 ### Upload Option Model
 ```typescript
 // Client sends to Edge Function
