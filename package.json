@@ -1,0 +1,11 @@
+{
+  "name": "spatial-lens-db-scripts",
+  "version": "1.0.0",
+  "description": "Maintenance scripts for Spatial Lens database",
+  "scripts": {
+    "cleanup": "node scripts/cleanup-storage.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
