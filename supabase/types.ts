@@ -456,6 +456,14 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_upload_sessions: { Args: never; Returns: Json }
+      cleanup_incomplete_option_uploads: {
+        Args: { p_option_id: string }
+        Returns: Json
+      }
+      cleanup_incomplete_record_uploads: {
+        Args: { p_record_id: string }
+        Returns: Json
+      }
       finalize_option: { Args: { option_id: string }; Returns: Json }
       finalize_record: { Args: { record_id: string }; Returns: Json }
       find_abandoned_uploads: {

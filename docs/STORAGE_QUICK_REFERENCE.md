@@ -123,9 +123,32 @@ graph LR
 
 ## Common Tasks
 
+### Clean Up Incomplete Uploads (Before Re-upload)
+```typescript
+// Clean up incomplete/failed upload_files before starting new upload
+// Call this if you get "X of Y required files not completed" errors
+const { data, error } = await supabase.rpc('cleanup_incomplete_option_uploads', {
+  p_option_id: optionId
+})
+
+// Returns:
+// {
+//   success: true,
+//   option_id: "...",
+//   deleted_incomplete_files: 4,
+//   message: "Incomplete uploads cleaned up successfully"
+// }
+
+// For records:
+const { data, error } = await supabase.rpc('cleanup_incomplete_record_uploads', {
+  p_record_id: recordId
+})
+```
+
 ### Reset Completed Upload for Re-upload
 ```typescript
 // Reset option back to draft status (allows re-uploading)
+// This deletes ALL upload_files and clears model_url
 const { data, error } = await supabase.rpc('reset_option_for_reupload', {
   p_option_id: optionId
 })
