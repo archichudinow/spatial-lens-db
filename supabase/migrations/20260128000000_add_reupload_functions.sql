@@ -38,7 +38,7 @@ BEGIN
   -- Delete associated upload_files entries
   WITH deleted AS (
     DELETE FROM upload_files
-    WHERE option_id = p_option_id
+    WHERE entity_type = 'option' AND entity_id = p_option_id
     RETURNING id
   )
   SELECT COUNT(*) INTO v_deleted_files_count FROM deleted;
@@ -46,7 +46,7 @@ BEGIN
   -- Update option: clear model_url and reset status to draft
   -- Using UPDATE directly bypasses the trigger because we're using SECURITY DEFINER
   -- and the trigger only applies to normal user operations
-  UPDATE options
+  UPDATE project_options
   SET 
     model_url = NULL,
     upload_status = 'draft',
@@ -184,7 +184,7 @@ DECLARE
 BEGIN
   -- Get current status and check permissions
   SELECT o.upload_status, o.project_id INTO v_old_status, v_project_id
-  FROM options o
+  FROM project_options o
   INNER JOIN projects p ON o.project_id = p.id
   WHERE o.id = p_option_id
     AND p.user_id = auth.uid();  -- Ensure user owns the project
@@ -208,7 +208,7 @@ BEGIN
   SELECT COUNT(*) INTO v_deleted_files_count FROM deleted;
 
   -- Update option: clear model_url and reset status to draft
-  UPDATE options
+  UPDATE project_options
   SET 
     model_url = NULL,
     upload_status = 'draft',
@@ -268,15 +268,15 @@ BEGIN
   -- Delete associated upload_files entries
   WITH deleted AS (
     DELETE FROM upload_files
-    WHERE record_id = p_record_id
+    WHERE entity_type = 'record' AND entity_id = p_record_id
     RETURNING id
   )
   SELECT COUNT(*) INTO v_deleted_files_count FROM deleted;
 
-  -- Update record: clear model_url and reset status to draft
+  -- Update record: clear record_url and reset status to draft
   UPDATE records
   SET 
-    model_url = NULL,
+    record_url = NULL,
     upload_status = 'draft',
     updated_at = NOW()
   WHERE id = p_record_id;
