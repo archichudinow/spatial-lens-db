@@ -464,6 +464,7 @@ export type Database = {
         Args: { p_record_id: string }
         Returns: Json
       }
+      cleanup_orphaned_upload_files: { Args: never; Returns: Json }
       finalize_option: { Args: { option_id: string }; Returns: Json }
       finalize_record: { Args: { record_id: string }; Returns: Json }
       find_abandoned_uploads: {
@@ -478,6 +479,7 @@ export type Database = {
           upload_status: Database["public"]["Enums"]["upload_status"]
         }[]
       }
+      find_orphaned_storage_files: { Args: never; Returns: Json }
       generate_option_model_path: {
         Args: {
           p_option_id: string
@@ -524,6 +526,21 @@ export type Database = {
           p_scenario_id?: string
         }
         Returns: string
+      }
+      get_project_storage_paths: {
+        Args: { p_project_id: string }
+        Returns: {
+          entity_id: string
+          entity_type: string
+          storage_path: string
+        }[]
+      }
+      get_storage_paths_for_deletion: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          file_type: string
+          storage_path: string
+        }[]
       }
       get_upload_session_status: {
         Args: { p_session_id: string }
