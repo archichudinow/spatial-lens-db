@@ -470,6 +470,42 @@ export type Database = {
           upload_status: Database["public"]["Enums"]["upload_status"]
         }[]
       }
+      generate_option_model_path: {
+        Args: {
+          p_option_id: string
+          p_project_id: string
+          p_timestamp?: number
+        }
+        Returns: string
+      }
+      generate_project_other_path: {
+        Args: {
+          p_file_type: string
+          p_project_id: string
+          p_timestamp?: number
+        }
+        Returns: string
+      }
+      generate_record_glb_path: {
+        Args: {
+          p_option_id: string
+          p_project_id: string
+          p_scenario_id: string
+          p_timestamp?: number
+        }
+        Returns: string
+      }
+      generate_record_raw_path: {
+        Args: {
+          p_extension?: string
+          p_option_id: string
+          p_project_id: string
+          p_scenario_id: string
+          p_timestamp?: number
+        }
+        Returns: string
+      }
+      get_project_folder_name: { Args: { project_id: string }; Returns: string }
       get_project_full: { Args: { p_project_id: string }; Returns: Json }
       get_project_storage_path: {
         Args: {
