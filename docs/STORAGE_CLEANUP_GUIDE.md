@@ -13,18 +13,30 @@ const { data, error } = await supabase.rpc('reset_option_for_reupload', {
   p_option_id: optionId
 })
 
-if (data?.success && data.storage_paths_to_delete) {
-  // Delete the actual files from storage
-  const paths = data.storage_paths_to_delete.map(f => f.path)
+if (data?.success && data.storage_folder_path) {
+  // IMPORTANT: Delete ALL files in the folder, not just tracked ones
+  // This handles cases where old upload_files records were cleaned up
   
-  const { error: deleteError } = await supabase.storage
+  // List all files in the folder
+  const { data: fileList } = await supabase.storage
     .from('projects')
-    .remove(paths)
+    .list(data.storage_folder_path)
   
-  if (deleteError) {
-    console.error('Failed to delete storage files:', deleteError)
-  } else {
-    console.log(`Deleted ${paths.length} files from storage`)
+  if (fileList && fileList.length > 0) {
+    // Delete all files in the folder
+    const pathsToDelete = fileList.map(file => 
+      data.storage_folder_path + file.name
+    )
+    
+    const { error: deleteError } = await supabase.storage
+      .from('projects')
+      .remove(pathsToDelete)
+    
+    if (deleteError) {
+      console.error('Failed to delete storage files:', deleteError)
+    } else {
+      console.log(`Deleted ${pathsToDelete.length} files from storage`)
+    }
   }
 }
 ```
